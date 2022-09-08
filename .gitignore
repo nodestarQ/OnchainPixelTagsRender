@@ -9,3 +9,7 @@ typechain-types
 cache
 artifacts
 
+#morefiles
+hardhat.config.json
+package-lock.json
+package.json
