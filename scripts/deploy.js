@@ -1,6 +1,8 @@
 const hre = require("hardhat");
 
+
 async function main() {
+
   const contract = await hre.ethers.getContractFactory("OnchainPixelTagsRender");
   const render = await contract.deploy();
 
