@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
-    "base64-sol": "^1.0.1"
+    "base64-sol": "^1.0.1",
+    "erc721a": "^4.2.2"
   }
 }

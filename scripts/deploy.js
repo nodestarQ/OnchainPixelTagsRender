@@ -3,12 +3,12 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const contract = await hre.ethers.getContractFactory("OnchainPixelTagsRender");
+  const contract = await hre.ethers.getContractFactory("PixelTags");
   const render = await contract.deploy();
 
   await render.deployed();
 
-  await render.addPT();
+  mintPixelTag("0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199");
 
   tokenURI = await render.tokenURI(1);
   console.log(tokenURI);
