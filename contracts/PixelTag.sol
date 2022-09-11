@@ -20,7 +20,7 @@ contract PixelTags is ERC721A, Ownable {
     //---------- Vars ----------//
     address public contractCreator;
     address public pixelRoyale;
-    uint256 public constant MAXTAGS = 4443;
+    uint256 public constant MAXTAGS = 9;
     string private baseURI;
     //---------- On-Chain Gen Art ----------//
     uint16 private pixelIndex = 1;

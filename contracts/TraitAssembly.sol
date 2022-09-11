@@ -69,7 +69,7 @@ library TraitAssembly {
             _eString = string(abi.encodePacked('<polygon points="5,8 11,8 11,9 9,9 9,8 7,8 7,9 5,9" fill="hsl(180,100%,100%)"/><polygon points="6,8 11,8 11,9 10,9 10,8 7,8 7,9 6,9" fill="hsl(',soulCol,',40%,60%)"/><polygon points="5,5 6,5 6,6 11,6 11,7 9,7 9,6 7,6 7,7 6,7 6,6 5,6" fill="hsl(180,0%,0%)"/>'));
         }
         if (keccak256(abi.encodePacked(_trait)) == keccak256(abi.encodePacked(_traitArray[3]))) {
-            _eString = string(abi.encodePacked('<polygon points="4,8 5,8 5,7 11,7 11,8 12,8 12,9 9,9 9,7 7,7 7,9 4,9" fill="hsl(180,0%,0%)"/><polygon points="5,8 11,8 11,9 9,9 9,8 7,8 7,9 5,9" fill="hsl(',soulCol,',40%,60%)"/><polygon points="6,8 11,8 11,9 10,9 10,8 7,8 7,9 6,9" fill="hsl(180,40%,60%)"/>'));
+            _eString = string(abi.encodePacked('<polygon points="4,8 5,8 5,7 11,7 11,8 12,8 12,9 9,9 9,7 7,7 7,9 4,9" fill="hsl(180,0%,0%)"/><polygon points="5,8 11,8 11,9 9,9 9,8 7,8 7,9 5,9" fill="hsl(',soulCol,',40%,60%)"/><polygon points="6,8 11,8 11,9 10,9 10,8 7,8 7,9 6,9" fill="hsl(180,0%,0%)"/>'));
         }
         if (keccak256(abi.encodePacked(_trait)) == keccak256(abi.encodePacked(_traitArray[4]))) {
             _eString = '<polygon points="4,7 5,7 5,8 6,8 6,7 10,7 10,8 11,8 11,7 12,7 12,8 11,8 11,9 10,9 10,8 9,8 9,7 7,7 7,8 6,8 6,9 5,9 5,8 4,8" fill="hsl(180,0%,0%)"/>';

@@ -4,7 +4,10 @@
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "erc721a/contracts/ERC721A.sol";
+import "@openzeppelin/contracts/utils/Strings.sol"; 
+import {Base64} from "base64-sol/base64.sol";
 import './PixelTag.sol';
+import {PixelAssembly} from "./PixelAssembly.sol";
 
 contract PixelRoyale is ERC721A, Ownable {
     //---------- Addies ----------//
@@ -18,18 +21,19 @@ contract PixelRoyale is ERC721A, Ownable {
     //---------- Mint Vars ----------//
     bool public started;
     bool public claimed;
-    uint256 public constant MAXPIXELS = 10;
+    uint256 public constant MAXPIXELS = 4444;
     uint256 public constant WALLETLIMIT = 2;
-    uint256 public constant CREATORCLAIMAMOUNT = 3;
+    uint256 public constant CREATORCLAIMAMOUNT = 111;
     mapping(address => uint) public addressClaimed; // ---> keeps track of wallet limit
-    // MetadataURI
-    string private baseURI;
+    
+    string private comb10 = '"}],"image": "data:image/svg+xml;base64,';
+    string private comb11 = '"}';
     //---------- PixelRoyale Vars ----------//
     bool public pixelWarStarted;
     bool public pixelWarConcluded;
     uint256 public timeLimit = 1671667200; // Thursday, 22. December 2022 00:00:00 GMT
     uint constant ITEM_PRICE = 0.005 ether;
-    mapping(address => uint) public walletHighscore; // ---> keeps track of each wallet highscore
+    mapping(address => uint) public walletHighscore; // ---> keeps track of each wallet highscore 
     uint256 public currentHighscore;
     string private salt;
     bool public payout;
@@ -37,6 +41,7 @@ contract PixelRoyale is ERC721A, Ownable {
     uint256[] public jackpot;
     //---------- Player Vars ----------//
     struct Pixel {
+        uint32 seed; //only for on-chain art gen
         int256 health;
         bool status;
     }
@@ -47,7 +52,7 @@ contract PixelRoyale is ERC721A, Ownable {
     event DropOut(address from,uint tokenId);
     event MiniJackpotWin(address winner, uint256 jackpotAmount);
     event MiniJackpotAmount(uint256 jackpotAmount);
-
+    
     //---------- Construct ERC721A TOKEN ----------//
     constructor() ERC721A("PixelRoyale BATTLE GAME", "PRBG") {
         contractCreator = msg.sender;
@@ -56,7 +61,7 @@ contract PixelRoyale is ERC721A, Ownable {
     function _startTokenId() internal view virtual override returns (uint256) {
         return 1;
     }
-
+    
     //---------------------------------------------------------------------------------------------
     //---------- MINT FUNCTIONS ----------//
     //---------- Start Minting -----------//
@@ -75,11 +80,12 @@ contract PixelRoyale is ERC721A, Ownable {
         require(_amount > 0, "You need to mint at least 1");
         require(total + _amount <= MAXPIXELS, "Not that many NFTs left, try to mint less");
         require(total <= MAXPIXELS, "Mint out");
-
+        
         // create structs for minted amount
-        for (uint j; j < _amount; j++) {
-            Pixel memory newPixel = Pixel(0,true);
-            pixelList[total+j+1] = newPixel;
+        for (uint j; j < _amount; j++) { 
+                Pixel memory newPixel = Pixel(
+                    uint32(bytes4(keccak256(abi.encodePacked(block.timestamp, j+1, msg.sender)))),0,true);
+                pixelList[total+j+1] = newPixel;
         }
         addressClaimed[_msgSender()] += _amount;
         _safeMint(_msgSender(), _amount);
@@ -95,8 +101,9 @@ contract PixelRoyale is ERC721A, Ownable {
         uint256 total = totalSupply();
         require(!claimed, "already claimed");
         for (uint j; j < CREATORCLAIMAMOUNT; j++) {
-            // struct creation for mint amount
-            Pixel memory newPixel = Pixel(0,true);
+            // struct creation for mint amount 
+                Pixel memory newPixel = Pixel(
+                uint32(bytes4(keccak256(abi.encodePacked(block.timestamp, j+1, msg.sender)))),0,true);
             pixelList[total+j+1] = newPixel;
         }
         _safeMint(contractCreator, CREATORCLAIMAMOUNT);
@@ -113,7 +120,7 @@ contract PixelRoyale is ERC721A, Ownable {
 
     //---------- Calculate Amount Of "Alive" Players ----------//
     function getPopulation() public view returns(uint256 _population) {
-        for (uint j=1; j <= totalSupply(); j++) {
+        for (uint j; j < totalSupply(); j++) {
             if(isAlive(j)){
                 _population++;
             }
@@ -131,7 +138,7 @@ contract PixelRoyale is ERC721A, Ownable {
 
     //---------- Checks If Specified TokenID Is "Alive" ----------//
     function isAlive(uint256 _tokenId) public view returns(bool _alive) {
-        pixelList[_tokenId].health < 0 ? _alive = false : _alive = true;
+       pixelList[_tokenId].health < 0 ? _alive = false : _alive = true;
     }
 
     //---------- Returns Random "Alive" TokenID ----------//
@@ -139,10 +146,10 @@ contract PixelRoyale is ERC721A, Ownable {
         for (uint256 j = pseudoRandom(totalSupply(),"Q"); j <= totalSupply() + 1; j++) {
             if(pixelList[j].health > -1) {
                 return j;
-            }
+            } 
             if(j == totalSupply()) {
                 j = 0;
-            }
+            }   
         }
     }
 
@@ -179,15 +186,15 @@ contract PixelRoyale is ERC721A, Ownable {
                 if(amount>18) {
                     priceMod = 6; // ---> 40%
                     if(amount>24) { priceMod = 5; } // ---> 50%
-                }
+                }  
             }
         }
 
-        // calculate purchase
+        // calculate purchase 
         uint256 currentPrice = ITEM_PRICE / 10 * priceMod * amount;
         require((currentPrice) <= msg.value, "Not enough ETH");
-
-        // checks on attack purchase
+        
+        // checks on attack purchase 
         if(_amount < 0) {
             require(pixelList[_tokenId].health+_amount>-2,"Try less attacks - warrior overkill");
             walletHighscore[_msgSender()] += amount;
@@ -202,9 +209,9 @@ contract PixelRoyale is ERC721A, Ownable {
 
         //emit event for item buy
         emit ItemBought(_msgSender(),mostAttacks,_tokenId,_amount); // ---> buyer, current Highscore Leader, Interacted token, amount of protections/attacks
-
+        
         // add to mini jackpot array
-        addToPot(msg.value);
+        addToPot(currentPrice);
 
         // try jackpot
         if(jackpot.length>0){
@@ -214,9 +221,8 @@ contract PixelRoyale is ERC721A, Ownable {
         // check if token is alive | Check if player has dropped out of Game
         InterfacePixelTags pixelTag = InterfacePixelTags(pixelTagContract); // ---> Interface to Tags NFT
         if ( !isAlive(_tokenId) ) {
-            pixelTag.mintPixelTag(_msgSender()); // ---> MINT DogTag FROM ERC721A
+            pixelTag.mintPixelTag(_msgSender()); // ---> MINT DogTag FROM ERC721A 
             pixelList[_tokenId].status = false;
-
             //emit DropOut event
             emit DropOut(_msgSender(),_tokenId); // ---> Killer, Killed Token
         }
@@ -287,34 +293,31 @@ contract PixelRoyale is ERC721A, Ownable {
         payable(contractCreator).transfer(address(this).balance);
         payout = true;
     }
-    //---------------------------------------------------------------------------------------------
-    //----------SET LATE ABASHO COLLECTIVE ADDRESS ----
-
-    function setAbashoADDR(address _addr) external onlyOwner {
-        abashoCollective = _addr;
-    }
-
+    
     //---------------------------------------------------------------------------------------------
     //---------- METADATA & BASEURI ----
 
-    function setBaseURI(string memory baseURI_) external onlyOwner {
-        baseURI = baseURI_;
-    }
-
-    function _baseURI() internal view virtual override returns (string memory) {
-        return baseURI;
-    }
-
     function tokenURI(uint256 _tokenId) public view virtual override returns (string memory) {
         require(_exists(_tokenId), "There is no token with that ID");
-        string memory currentBaseURI = _baseURI();
-        if(isAlive(_tokenId)) {
-            return bytes(currentBaseURI).length > 0 ? string(abi.encodePacked(currentBaseURI, _toString(_tokenId), '.json')) : '';
-        }
-        else {
-            return bytes(currentBaseURI).length > 0 ? string(abi.encodePacked(currentBaseURI,'d', _toString(_tokenId), '.json')) : '';
-        }
-
+        uint32 seed = pixelList[_tokenId].seed;
         
+        string memory t6;
+        string memory t7;
+        bool stat = pixelList[_tokenId].status;
+        
+        stat ? t7 = "Alive" : t7 = "Missing In Action";//Status
+        //Init Trait Strings
+        string[7] memory tValues = [Strings.toString((((seed%36)*0)+180)%360), Strings.toString((seed%360)), Strings.toString((seed%72)*5), Strings.toString(((seed%360)+180)%360), Strings.toString((((seed%72)*5)+180)%360), Strings.toString(((seed%36)*0)),t7]; //background -> helmet
+
+        bytes memory img;
+        bytes memory json;
+        bool seeded = seed%100<=75;
+        (img,json) = PixelAssembly.buildWarrior(tValues, seed, stat, _tokenId, seeded);
+        
+        // ----- CLOSE OFF SVG AND JSON ASSEMBLY ------//
+        img = abi.encodePacked(img, '</svg>');
+        json = abi.encodePacked(json,comb10,Base64.encode(img),comb11);
+        // ----- RETURN BASE64 ENCODED METADATA ------//
+        return string(abi.encodePacked('data:application/json;base64,', Base64.encode(json)));
     }
 }
